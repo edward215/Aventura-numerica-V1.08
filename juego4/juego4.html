@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Tesoro del Pirata - Divisiones por 1</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom, #1a2a6c, #b21f1f, #fdbb2d);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        h1 {
+            font-size: clamp(1.8rem, 5vw, 2.5rem);
+            color: #FFD700;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            font-family: 'Trebuchet MS', sans-serif;
+        }
+
+        .scene {
+            width: 100%;
+            height: 300px;
+            background-image: url('../assets/fondojuego4.png');
+            background-size: cover;
+            background-position: center;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .chest {
+            position: absolute;
+            width: 120px;
+            height: 90px;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 2;
+        }
+
+        .chest:hover {
+            transform: translateX(-50%) scale(1.05);
+        }
+
+        .chest img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .coins {
+            position: absolute;
+            width: 100%;
+            bottom: 0;
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            flex-wrap: wrap;
+            padding: 10px;
+            z-index: 1;
+        }
+
+        .coin {
+            width: 30px;
+            height: 30px;
+            animation: coinAppear 0.5s ease-out;
+        }
+
+        @keyframes coinAppear {
+            0% {
+                transform: scale(0) rotate(0deg);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1) rotate(360deg);
+                opacity: 1;
+            }
+        }
+
+        .question-box {
+            background-color: rgba(0, 0, 0, 0.7);
+            border: 3px solid #FFD700;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .key-container {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+        }
+
+        .key-container:hover {
+            transform: translateY(-5px);
+        }
+
+        .key-icon {
+            width: 30px;
+            height: 30px;
+            transition: all 0.3s;
+        }
+
+        .key {
+            background-color: #8B4513;
+            color: #FFD700;
+            border: 2px solid #FFD700;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        .key:hover {
+            background-color: #A0522D;
+            transform: translateY(-3px);
+        }
+
+        .key:active {
+            transform: translateY(0);
+        }
+
+        .ghost {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            bottom: 20px;
+            right: 20px;
+            opacity: 0;
+            transition: opacity 0.5s;
+            z-index: 3;
+        }
+
+        .ghost.show {
+            opacity: 1;
+        }
+
+        .progress-container {
+            width: 100%;
+            max-width: 400px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .progress-label {
+            color: #FFD700;
+            margin-bottom: 5px;
+            font-size: 1rem;
+        }
+
+        .progress {
+            width: 100%;
+            height: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, #FFD700, #FFA500);
+            width: 0%;
+            transition: width 0.5s;
+            position: relative;
+        }
+
+        .progress-text {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #000;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            font-size: 1.5rem;
+            z-index: 10;
+            display: none;
+            text-align: center;
+            border: 2px solid #FFD700;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .message button {
+            margin-top: 15px;
+            padding: 8px 16px;
+            background-color: #FFD700;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .message button:hover {
+            background-color: #ffc800;
+        }
+
+        .waves {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 60px;
+            background-image: url('https://www.clipartmax.com/png/middle/156-1565818_wave-clipart-animated-gif-ocean-wave-line-drawing.png');
+            background-repeat: repeat-x;
+            background-size: contain;
+            animation: waveAnimation 10s linear infinite;
+        }
+
+        @keyframes waveAnimation {
+            from {
+                background-position-x: 0;
+            }
+
+            to {
+                background-position-x: 100%;
+            }
+        }
+
+        /* Estilos para el botón de inicio */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #FFD700;
+            border: 2px solid #FFD700;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            text-decoration: none;
+            z-index: 100;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .back-button:hover {
+            background-color: rgba(255, 215, 0, 0.2);
+            transform: scale(1.1);
+        }
+
+        /* Estilos para la ventana de felicitación */
+        .win-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            border: 3px solid #FFD700;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            max-width: 90%;
+            width: 400px;
+            animation: fadeIn 0.3s;
+        }
+
+        .win-popup h2 {
+            color: #FFD700;
+            margin-bottom: 15px;
+        }
+
+        .win-popup p {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+
+        .win-popup .coins-earned {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 15px 0;
+            font-size: 1.3rem;
+            color: #FFD700;
+        }
+
+        .win-popup .coins-earned img {
+            width: 30px;
+            height: 30px;
+            margin-left: 10px;
+        }
+
+        .win-popup button {
+            background-color: #FFD700;
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 1.1rem;
+            margin: 10px 0;
+            cursor: pointer;
+            width: 80%;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .win-popup button:hover {
+            background-color: #ffc800;
+            transform: translateY(-3px);
+        }
+
+        /* Efectos de confeti */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            opacity: 0;
+            z-index: 999;
+            animation: confetti 5s ease-in-out;
+        }
+
+        @keyframes confetti {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* Efecto de respuesta correcta/incorrecta */
+        .correct-answer {
+            animation: correctPulse 0.5s;
+        }
+
+        @keyframes correctPulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .wrong-answer {
+            animation: wrongShake 0.5s;
+        }
+
+        @keyframes wrongShake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            20%,
+            60% {
+                transform: translateX(-5px);
+            }
+
+            40%,
+            80% {
+                transform: translateX(5px);
+            }
+        }
+
+        /* Popup de subida de nivel */
+        .nivel-up-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.5s;
+        }
+
+        .nivel-up-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            max-width: 300px;
+        }
+
+        .nivel-up-icon {
+            font-size: 60px;
+            color: gold;
+            margin-bottom: 15px;
+        }
+
+        .nivel-up-title {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .nivel-up-rank {
+            font-weight: bold;
+            font-size: 18px;
+            margin: 10px 0;
+            display: block;
+        }
+
+        .nivel-up-level {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e90ff;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .scene {
+                height: 250px;
+            }
+
+            .chest {
+                width: 100px;
+                height: 75px;
+            }
+
+            .options {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .ghost {
+                width: 60px;
+                height: 60px;
+            }
+
+            .win-popup {
+                width: 90%;
+                padding: 20px;
+            }
+
+            .win-popup p {
+                font-size: 1.1rem;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .scene {
+                height: 200px;
+            }
+
+            .chest {
+                width: 80px;
+                height: 60px;
+            }
+
+            .options {
+                grid-template-columns: 1fr;
+            }
+
+            .key-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .key-icon {
+                order: -1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Botón para volver al inicio -->
+    <a href="../principal/principal.html" class="back-button" id="back-button">⮐</a>
+
+    <div class="game-container">
+        <h1>El Tesoro del Pirata</h1>
+
+        <div class="scene">
+            <div class="waves"></div>
+            <div class="chest" id="chest">
+                <img src="../assets/juego3/cofre-close.png" alt="Cofre del tesoro" id="chest-img">
+            </div>
+            <div class="coins" id="coins"></div>
+            <img src="https://www.clipartmax.com/png/middle/156-1563938_ghost-pirate-clipart.png" alt="Fantasma"
+                class="ghost" id="ghost">
+        </div>
+
+        <div class="question-box" id="question"></div>
+
+        <div class="options" id="options"></div>
+
+        <div class="progress-container">
+            <div class="progress-label">Progreso: <span id="correct-count">0</span>/<span id="total-questions">10</span>
+            </div>
+            <div class="progress">
+                <div class="progress-bar" id="progress">
+                    <span class="progress-text" id="progress-text">0%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="message" id="message">
+        <div id="message-text"></div>
+        <button id="restart-btn">Jugar de nuevo</button>
+    </div>
+
+    <!-- Ventana de felicitación -->
+    <div class="win-popup" id="win-popup">
+        <h2>¡Felicidades!</h2>
+        <p>Has dominado las divisiones por 1. ¡Eres un verdadero pirata matemático!</p>
+        <div class="coins-earned">
+            <span id="total-coins-earned">0</span>
+            <img src="../assets/moneda.png" alt="Monedas">
+        </div>
+        <button onclick="continuePlaying()">Continuar jugando</button>
+        <button onclick="goToHome()">Volver al inicio</button>
+    </div>
+
+    <!-- Popup de subida de nivel -->
+    <div id="nivel-up-popup" class="nivel-up-popup">
+        <div class="nivel-up-content">
+            <div class="nivel-up-icon">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <h2 class="nivel-up-title">¡Subiste de Nivel!</h2>
+            <div class="nivel-up-details">
+                <span class="nivel-up-text">Ahora eres</span>
+                <span class="nivel-up-rank" id="nivel-up-rank">Novato Matemático</span>
+            </div>
+            <div class="nivel-up-level">Nivel <span id="nivel-up-level">1</span></div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de rangos por nivel
+        const rangosPorNivel = {
+            1: { nombre: "Novato Matemático", color: "#9E9E9E" },
+            2: { nombre: "Aprendiz de Números", color: "#4CAF50" },
+            3: { nombre: "Calculador Principiante", color: "#2196F3" },
+            4: { nombre: "Guerrero de las Matematicas", color: "#FF9800" },
+            5: { nombre: "Mago de las Operaciones", color: "#9C27B0" },
+            6: { nombre: "Sabio de las Matematicas", color: "#F44336" },
+            7: { nombre: "Experto en Operaciones", color: "#00BCD4" },
+            8: { nombre: "Maestro del Cálculo", color: "#FF5722" },
+            9: { nombre: "Gran Matemático", color: "#673AB7" },
+            10: { nombre: "Leyenda Matemática", color: "#FFD700" }
+        };
+
+        // Configuración del sistema de niveles
+        const nivelConfig = {
+            expPorJuego: 10, // 10 EXP por cada juego completado
+            expNiveles: [0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000],
+            maxNivel: 10
+        };
+
+        // Elementos del DOM
+        const chest = document.getElementById('chest');
+        const chestImg = document.getElementById('chest-img');
+        const questionEl = document.getElementById('question');
+        const optionsEl = document.getElementById('options');
+        const coinsEl = document.getElementById('coins');
+        const ghost = document.getElementById('ghost');
+        const progressEl = document.getElementById('progress');
+        const progressText = document.getElementById('progress-text');
+        const correctCountEl = document.getElementById('correct-count');
+        const totalQuestionsEl = document.getElementById('total-questions');
+        const messageEl = document.getElementById('message');
+        const messageText = document.getElementById('message-text');
+        const restartBtn = document.getElementById('restart-btn');
+        const winPopup = document.getElementById('win-popup');
+        const backButton = document.getElementById('back-button');
+        const totalCoinsEarned = document.getElementById('total-coins-earned');
+
+        // Variables del juego
+        let correctCount = 0;
+        let totalQuestions = 10;
+        let currentAnswer;
+        let errorCount = 0;
+        let chestOpened = false;
+        let coinScore = 0;
+        let gameActive = true;
+
+        // Función para obtener el rango del usuario según su nivel
+        function obtenerRangoUsuario(nivel) {
+            return rangosPorNivel[nivel] || rangosPorNivel[1];
+        }
+
+        // Función para mostrar la animación de subida de nivel
+        function mostrarNivelUp(nuevoNivel) {
+            const rango = obtenerRangoUsuario(nuevoNivel);
+            const popup = document.getElementById('nivel-up-popup');
+
+            document.getElementById('nivel-up-rank').textContent = rango.nombre;
+            document.getElementById('nivel-up-rank').style.color = rango.color;
+            document.getElementById('nivel-up-level').textContent = nuevoNivel;
+
+            popup.style.display = 'flex';
+
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 3000);
+        }
+
+        // Función para ganar EXP
+        function ganarExp(cantidad) {
+            let expActual = parseInt(localStorage.getItem('userExp') || 0);
+            const nivelActual = parseInt(localStorage.getItem('userLevel') || 1);
+
+            if (nivelActual < nivelConfig.maxNivel) {
+                expActual += cantidad;
+                localStorage.setItem('userExp', expActual);
+                verificarSubidaNivel();
+            }
+        }
+
+        // Función para verificar si el usuario subió de nivel
+        function verificarSubidaNivel() {
+            const expActual = parseInt(localStorage.getItem('userExp') || 0);
+            let nivelActual = parseInt(localStorage.getItem('userLevel') || 1);
+
+            if (nivelActual < nivelConfig.maxNivel && expActual >= nivelConfig.expNiveles[nivelActual]) {
+                nivelActual++;
+                localStorage.setItem('userLevel', nivelActual);
+                mostrarNivelUp(nivelActual);
+            }
+        }
+
+        // Inicializar el juego
+        function initGame() {
+            gameActive = true;
+            correctCount = 0;
+            errorCount = 0;
+            coinScore = 0;
+            updateProgress();
+            generateQuestion();
+            messageEl.style.display = 'none';
+            winPopup.style.display = 'none';
+            chestOpened = false;
+            chest.style.transform = 'translateX(-50%)';
+            chestImg.src = "../assets/juego3/cofre-close.png";
+            coinsEl.innerHTML = '';
+            ghost.classList.remove('show');
+            totalQuestionsEl.textContent = totalQuestions;
+        }
+
+        // Generar una nueva pregunta de división por 1
+        function generateQuestion() {
+            const dividend = Math.floor(Math.random() * 10) + 1; // Números del 1 al 10
+            currentAnswer = dividend; // Porque dividendo ÷ 1 = dividendo
+
+            questionEl.textContent = `${dividend} ÷ 1 = ?`;
+
+            // Generar opciones de respuesta
+            let options = [currentAnswer];
+            while (options.length < 3) {
+                const randomOption = Math.floor(Math.random() * 10) + 1;
+                if (!options.includes(randomOption)) {
+                    options.push(randomOption);
+                }
+            }
+
+            // Mezclar las opciones
+            options = shuffleArray(options);
+
+            // Mostrar las opciones como llaves
+            optionsEl.innerHTML = '';
+            options.forEach(option => {
+                const keyContainer = document.createElement('div');
+                keyContainer.className = 'key-container';
+
+                const keyIcon = document.createElement('img');
+                keyIcon.className = 'key-icon';
+                keyIcon.src = '../assets/juego3/llave.png';
+                keyIcon.alt = 'Llave';
+
+                const key = document.createElement('div');
+                key.className = 'key';
+                key.textContent = option;
+                key.onclick = () => checkAnswer(option, key);
+
+                keyContainer.appendChild(keyIcon);
+                keyContainer.appendChild(key);
+                optionsEl.appendChild(keyContainer);
+            });
+        }
+
+        // Verificar la respuesta seleccionada
+        function checkAnswer(selected, keyElement) {
+            if (chestOpened || !gameActive) return;
+
+            gameActive = false; // Bloquear más interacciones hasta que termine la animación
+
+            if (selected === currentAnswer) {
+                // Respuesta correcta
+                correctCount++;
+                errorCount = 0;
+                coinScore += 1; // 1 moneda por respuesta correcta
+
+                // Efecto visual
+                keyElement.classList.add('correct-answer');
+                keyElement.style.backgroundColor = '#4CAF50';
+                keyElement.style.color = '#fff';
+
+                openChest();
+                updateProgress();
+
+                if (correctCount >= totalQuestions) {
+                    setTimeout(() => {
+                        showWinPopup();
+                        // Ganar 10 EXP al completar el juego
+                        ganarExp(nivelConfig.expPorJuego);
+                    }, 1500);
+                } else {
+                    setTimeout(() => {
+                        generateQuestion();
+                        gameActive = true;
+                    }, 1500);
+                }
+            } else {
+                // Respuesta incorrecta
+                errorCount++;
+
+                // Efecto visual
+                keyElement.classList.add('wrong-answer');
+                keyElement.style.backgroundColor = '#f44336';
+                keyElement.style.color = '#fff';
+
+                if (errorCount >= 2) {
+                    ghost.classList.add('show');
+                    setTimeout(() => {
+                        ghost.classList.remove('show');
+                    }, 2000);
+                }
+
+                // Mostrar la respuesta correcta
+                const keys = document.querySelectorAll('.key');
+                keys.forEach(key => {
+                    if (parseInt(key.textContent) === currentAnswer) {
+                        key.style.backgroundColor = '#4CAF50';
+                        key.style.color = '#fff';
+                    }
+                });
+
+                showMessage('¡Oh no! Esa llave no abre el cofre. La respuesta correcta era ' + currentAnswer);
+
+                setTimeout(() => {
+                    generateQuestion();
+                    gameActive = true;
+                }, 2000);
+            }
+        }
+
+        // Animación de abrir el cofre
+        function openChest() {
+            chestOpened = true;
+            chest.style.transform = 'translateX(-50%) rotate(-10deg)';
+            chestImg.src = "../assets/juego3/cofre-open.png";
+
+            // Mostrar monedas
+            const coinsCount = Math.floor(Math.random() * 5) + 3; // 3-7 monedas
+            coinsEl.innerHTML = '';
+
+            for (let i = 0; i < coinsCount; i++) {
+                const coin = document.createElement('img');
+                coin.className = 'coin';
+                coin.src = '../assets/moneda.png';
+                coin.style.animationDelay = `${i * 0.1}s`;
+                coinsEl.appendChild(coin);
+            }
+
+            setTimeout(() => {
+                chest.style.transform = 'translateX(-50%)';
+                chestImg.src = "../assets/juego3/cofre-close.png";
+                chestOpened = false;
+            }, 1000);
+        }
+
+        // Actualizar la barra de progreso
+        function updateProgress() {
+            const progress = (correctCount / totalQuestions) * 100;
+            progressEl.style.width = `${progress}%`;
+            progressText.textContent = `${Math.round(progress)}%`;
+            correctCountEl.textContent = correctCount;
+        }
+
+        // Mostrar mensaje
+        function showMessage(text) {
+            messageText.textContent = text;
+            messageEl.style.display = 'block';
+        }
+
+        // Mostrar ventana de victoria
+        function showWinPopup() {
+            totalCoinsEarned.textContent = coinScore;
+            winPopup.style.display = 'flex';
+            createConfetti();
+            // Incrementar contador de partidas completadas para los logros
+            let partidas = parseInt(localStorage.getItem('partidasTesoroPirata') || 0);
+            localStorage.setItem('partidasTesoroPirata', partidas + 1);
+
+            // Notificar al juego principal para actualizar logros (si está en iframe)
+            if (window.parent && window.parent.actualizarProgresoLogro) {
+                window.parent.actualizarProgresoLogro();
+            }
+        }
+
+        // Crear efecto de confeti
+        function createConfetti() {
+            const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50', '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800', '#FF5722'];
+
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = Math.random() * 10 + 5 + 'px';
+                confetti.style.height = Math.random() * 10 + 5 + 'px';
+                confetti.style.animationDuration = Math.random() * 3 + 2 + 's';
+                confetti.style.animationDelay = Math.random() * 2 + 's';
+                document.body.appendChild(confetti);
+
+                // Eliminar después de la animación
+                setTimeout(() => {
+                    confetti.remove();
+                }, 5000);
+            }
+        }
+
+        // Mezclar array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Continuar jugando después de completar
+        function continuePlaying() {
+            saveCoins();
+
+            // Asegurarse de que se guarde el progreso antes de reiniciar
+            let partidas = parseInt(localStorage.getItem('partidasTesoroPirata') || 0);
+            localStorage.setItem('partidasTesoroPirata', partidas + 1);
+
+            if (window.parent && window.parent.actualizarProgresoLogro) {
+                window.parent.actualizarProgresoLogro();
+            }
+
+            initGame();
+        }
+
+        // Ir al inicio
+        // Ir al inicio
+        function goToHome() {
+            saveCoins();
+
+            // Guardar partida completada si el jugador ganó
+            if (correctCount >= totalQuestions) {
+                let partidas = parseInt(localStorage.getItem('partidasTesoroPirata') || 0);
+                localStorage.setItem('partidasTesoroPirata', partidas + 1);
+
+                if (window.parent && window.parent.actualizarProgresoLogro) {
+                    window.parent.actualizarProgresoLogro();
+                }
+            }
+
+            window.location.href = '../principal/principal.html';
+        }
+
+        // Guardar monedas ganadas
+        function saveCoins() {
+            if (coinScore > 0) {
+                const total = parseInt(localStorage.getItem('monedasUsuario') || '0');
+                localStorage.setItem('monedasUsuario', total + coinScore);
+                coinScore = 0;
+            }
+        }
+
+        // Event listeners
+        restartBtn.addEventListener('click', initGame);
+        backButton.addEventListener('click', function (e) {
+            if (correctCount > 0) {
+                if (!confirm('¿Estás seguro de salir? Perderás el progreso de esta partida.')) {
+                    e.preventDefault();
+                } else {
+                    saveCoins();
+                }
+            }
+        });
+
+        // Guardar monedas al salir
+        window.addEventListener('beforeunload', saveCoins);
+
+        // Iniciar el juego al cargar
+        window.onload = function () {
+            initGame();
+            // Verificar si hay monedas dobles activas
+            checkDoubleCoins();
+        };
+
+        // Verificar si hay monedas dobles activas
+        function checkDoubleCoins() {
+            const active = localStorage.getItem('monedasDoblesActivo') === 'true';
+            const expires = parseInt(localStorage.getItem('monedasDoblesExpira') || '0');
+
+            if (active && Date.now() < expires) {
+                showMessage('¡Tienes monedas dobles activas! Ganas el doble por cada respuesta correcta.');
+            } else if (active) {
+                localStorage.setItem('monedasDoblesActivo', 'false');
+            }
+        }
+    </script>
+</body>
+
+</html>
