@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FrutiContador</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+
+        /* Contenedor principal del juego */
+        .game-container {
+            text-align: center;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 95%;
+            position: relative;
+        }
+
+        h1 {
+            color: #FF6B6B;
+            font-family: 'Comic Sans MS', cursive;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+
+        /* Escena donde aparecen las frutas */
+        .scene {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            background-color: #f0f8ff;
+            border-radius: 15px;
+            margin: 30px 0;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1);
+            min-height: 500px;
+        }
+
+        @media (min-width: 768px) {
+            .scene {
+                height: 600px;
+            }
+        }
+
+        /* Estilos para las frutas */
+        .fruit {
+            position: absolute;
+            object-fit: contain;
+            transition: transform 0.3s;
+            user-select: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .fruit.small {
+            width: 40px;
+            height: 40px;
+            filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.3));
+            font-size: 30px;
+        }
+
+        .fruit.medium {
+            width: 100px;
+            height: 100px;
+            filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.3));
+            font-size: 80px;
+        }
+
+        .fruit.large {
+            width: 200px;
+            height: 200px;
+            filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.3));
+            font-size: 150px;
+        }
+
+        /* Caja de pregunta */
+        .question-box {
+            background: linear-gradient(135deg, #4ECDC4, #2BB3AA);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px auto;
+            max-width: 500px;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Opciones de respuesta */
+        .options {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .option-btn {
+            background: linear-gradient(to bottom, #FFD166, #FFB347);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            min-width: 60px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .option-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .option-btn:active {
+            transform: translateY(1px);
+        }
+
+        /* Barra de progreso */
+        .progress-container {
+            margin: 20px auto;
+            max-width: 500px;
+        }
+
+        .progress-label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 1.1rem;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, #06D6A0, #04B589);
+            width: 0%;
+            transition: width 0.5s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-text {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-size: 0.8rem;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Mensajes de feedback */
+        .message {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            text-align: center;
+            max-width: 80%;
+            border: 3px solid;
+        }
+
+        .message.correct {
+            border-color: #4CAF50;
+            background-color: #e8f5e9;
+        }
+
+        .message.incorrect {
+            border-color: #f44336;
+            background-color: #ffebee;
+        }
+
+        #message-text {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+
+        /* Efecto de olas en el fondo */
+        .wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" fill="%234ECDC4" opacity=".25"/><path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" fill="%234ECDC4" opacity=".5"/><path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" fill="%234ECDC4"/></svg>');
+            background-size: cover;
+            background-repeat: no-repeat;
+            opacity: 0.5;
+            animation: wave 10s linear infinite;
+        }
+
+        .wave:nth-child(2) {
+            animation-delay: -5s;
+            opacity: 0.3;
+            bottom: 5px;
+        }
+
+        @keyframes wave {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        /* Botón de volver */
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 2rem;
+            color: #555;
+            text-decoration: none;
+            transition: all 0.3s;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.7);
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .back-button:hover {
+            color: #FF6B6B;
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        /* ------------------------- */
+        /* VENTANA DE VICTORIA MEJORADA */
+        /* ------------------------- */
+        .win-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            z-index: 200;
+            width: 85%;
+            max-width: 400px;
+            animation: bounceIn 0.6s;
+            border: 3px solid #4ECDC4;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: translate(-50%, -50%) scale(0.8);
+                opacity: 0;
+            }
+
+            50% {
+                transform: translate(-50%, -50%) scale(1.05);
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .win-popup h2 {
+            color: #FF6B6B;
+            margin-top: 0;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .win-popup p {
+            color: #555;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .reward-container {
+            background-color: rgba(78, 205, 196, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: left;
+        }
+
+        .reward-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .reward-icon {
+            background-color: #4ECDC4;
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .reward-icon-img {
+            width: 25px;
+            height: 25px;
+            margin-right: 10px;
+        }
+
+        .reward-text {
+            color: #555;
+            font-size: 1rem;
+        }
+
+        .buttons-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .win-popup button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .continue-btn {
+            background: linear-gradient(to bottom, #4CAF50, #388E3C);
+            color: white;
+        }
+
+        .continue-btn:hover {
+            background: linear-gradient(to bottom, #43A047, #2E7D32);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .home-btn {
+            background: linear-gradient(to bottom, #4285F4, #3367D6);
+            color: white;
+        }
+
+        .home-btn:hover {
+            background: linear-gradient(to bottom, #3A78E0, #2A56C0);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Efectos de confeti mejorados */
+        .confetti {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background-color: #f00;
+            animation: fall 3s linear forwards;
+            z-index: 10;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-20px) rotate(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 500px) {
+            .win-popup {
+                padding: 20px;
+                width: 90%;
+            }
+
+            .win-popup h2 {
+                font-size: 1.5rem;
+            }
+
+            .win-popup button {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Botón para volver al inicio -->
+    <a href="../principal/principal.html" class="back-button" id="back-button">⮐</a>
+
+    <div class="game-container">
+        <h1>FrutiContador</h1>
+
+        <div class="scene" id="scene">
+            <div class="wave"></div>
+            <div class="wave"></div>
+            <div id="fruits-container"></div>
+        </div>
+
+        <div class="question-box" id="question"></div>
+
+        <div class="options" id="options"></div>
+
+        <div class="progress-container">
+            <div class="progress-label">Progreso: <span id="correct-count">0</span>/<span id="total-questions">4</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress" id="progress">
+                    <span class="progress-text" id="progress-text">0%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="message" id="message">
+        <div id="message-text"></div>
+    </div>
+
+    <!-- Ventana de victoria mejorada -->
+    <div class="win-popup" id="win-popup">
+        <h2>¡Felicidades! 🎉</h2>
+        <p>¡Has dominado el conteo de frutas!</p>
+
+        <div class="reward-container">
+            <div class="reward-item">
+                <span class="reward-icon">✓</span>
+                <span class="reward-text">Respuestas correctas: <strong
+                        id="correct-count-win">0</strong>/<strong>4</strong></span>
+            </div>
+            <div class="reward-item">
+                <img src="../assets/moneda.png" class="reward-icon-img">
+                <span class="reward-text">Monedas ganadas: <strong id="total-coins-earned">0</strong></span>
+            </div>
+        </div>
+
+        <div class="buttons-container">
+            <button class="continue-btn" onclick="continuePlaying()">Continuar jugando</button>
+            <button class="home-btn" onclick="goToHome()">Volver al inicio</button>
+        </div>
+    </div>
+
+    <script>
+        // Tipos de frutas y tamaños
+        const fruits = [
+            { name: "manzana", icon: "🍎" },
+            { name: "naranja", icon: "🍊" },
+            { name: "platano", icon: "🍌" },
+            { name: "fresa", icon: "🍓" },
+            { name: "uva", icon: "🍇" },
+            { name: "sandia", icon: "🍉" },
+            { name: "piña", icon: "🍍" },
+            { name: "cereza", icon: "🍒" }
+        ];
+
+        const sizes = [
+            { name: "small", label: "pequeñas", size: 40 },
+            { name: "medium", label: "medianas", size: 100 },
+            { name: "large", label: "grandes", size: 200 }
+        ];
+
+        // Variables del juego
+        let correctCount = 0;
+        const totalQuestions = 4;
+        let currentQuestion = {};
+        let gameActive = true;
+
+        // Elementos del DOM
+        const scene = document.getElementById("scene");
+        const fruitsContainer = document.getElementById("fruits-container");
+        const questionEl = document.getElementById("question");
+        const optionsEl = document.getElementById("options");
+        const correctCountEl = document.getElementById("correct-count");
+        const totalQuestionsEl = document.getElementById("total-questions");
+        const progressEl = document.getElementById("progress");
+        const progressText = document.getElementById("progress-text");
+        const messageEl = document.getElementById("message");
+        const messageText = document.getElementById("message-text");
+        const winPopup = document.getElementById("win-popup");
+        const correctCountWin = document.getElementById("correct-count-win");
+        const totalCoinsEarned = document.getElementById("total-coins-earned");
+        const backButton = document.getElementById("back-button");
+
+        // Inicializar el juego
+        function initGame() {
+            correctCount = 0;
+            gameActive = true;
+            updateProgress();
+            generateQuestion();
+            messageEl.style.display = "none";
+            winPopup.style.display = "none";
+        }
+
+        // Generar una pregunta aleatoria
+        function generateQuestion() {
+            fruitsContainer.innerHTML = "";
+
+            // Generar frutas aleatorias (entre 8 y 15)
+            const totalFruits = Math.floor(Math.random() * 8) + 8;
+            const fruitsList = [];
+
+            for (let i = 0; i < totalFruits; i++) {
+                const randomFruit = fruits[Math.floor(Math.random() * fruits.length)];
+                const randomSize = sizes[Math.floor(Math.random() * sizes.length)];
+                fruitsList.push({
+                    ...randomFruit,
+                    size: randomSize.name,
+                    sizeObj: randomSize
+                });
+
+                // Mostrar frutas en pantalla
+                const fruitSpan = document.createElement("div");
+                fruitSpan.className = `fruit ${randomSize.name}`;
+                fruitSpan.textContent = randomFruit.icon;
+                fruitSpan.title = `${randomFruit.name} ${randomSize.label}`;
+
+                // Posición aleatoria pero evitando superposiciones
+                let attempts = 0;
+                let x, y;
+                const sceneWidth = scene.offsetWidth;
+                const sceneHeight = scene.offsetHeight - 70; // Espacio para las olas
+
+                do {
+                    x = Math.random() * (sceneWidth - randomSize.size * 1.5);
+                    y = Math.random() * (sceneHeight - randomSize.size * 1.5);
+                    attempts++;
+
+                    // Si después de 20 intentos no encontramos posición, forzamos una
+                    if (attempts > 20) {
+                        x = Math.random() * (sceneWidth - randomSize.size);
+                        y = Math.random() * (sceneHeight - randomSize.size);
+                        break;
+                    }
+                } while (isOverlapping(fruitSpan, x, y));
+
+                fruitSpan.style.left = `${x}px`;
+                fruitSpan.style.top = `${y}px`;
+                fruitSpan.style.zIndex = randomSize.size; // Las más grandes se ven encima
+
+                fruitsContainer.appendChild(fruitSpan);
+            }
+
+            // Generar pregunta aleatoria (tipo o tamaño)
+            const questionType = Math.random() > 0.5 ? "size" : "fruit";
+
+            if (questionType === "size") {
+                const randomSize = sizes[Math.floor(Math.random() * sizes.length)];
+                const count = fruitsList.filter(f => f.size === randomSize.name).length;
+
+                currentQuestion = {
+                    type: "size",
+                    size: randomSize.name,
+                    sizeLabel: randomSize.label,
+                    answer: count,
+                    text: `¿Cuántas frutas ${randomSize.label} hay?`
+                };
+            } else {
+                const randomFruit = fruits[Math.floor(Math.random() * fruits.length)];
+                const randomSize = sizes[Math.floor(Math.random() * sizes.length)];
+                const count = fruitsList.filter(f => f.name === randomFruit.name && f.size === randomSize.name).length;
+
+                currentQuestion = {
+                    type: "fruit",
+                    fruit: randomFruit.name,
+                    size: randomSize.name,
+                    sizeLabel: randomSize.label,
+                    answer: count,
+                    text: `¿Cuántas ${randomFruit.name}s ${randomSize.label} hay?`
+                };
+            }
+
+            questionEl.textContent = currentQuestion.text;
+            generateOptions(currentQuestion.answer);
+        }
+
+        // Verificar si una fruta se superpone con otras
+        function isOverlapping(newFruit, x, y) {
+            const fruits = document.querySelectorAll('.fruit');
+            const newWidth = newFruit.classList.contains('small') ? 40 :
+                newFruit.classList.contains('medium') ? 100 : 200;
+            const newHeight = newWidth;
+            const margin = 15; // Margen adicional entre frutas
+
+            for (const fruit of fruits) {
+                const rect = fruit.getBoundingClientRect();
+                const fruitX = rect.left - scene.getBoundingClientRect().left;
+                const fruitY = rect.top - scene.getBoundingClientRect().top;
+                const fruitSize = fruit.classList.contains('small') ? 40 :
+                    fruit.classList.contains('medium') ? 100 : 200;
+
+                // Verificar colisión con margen
+                if (!(x + newWidth + margin < fruitX ||
+                    x > fruitX + fruitSize + margin ||
+                    y + newHeight + margin < fruitY ||
+                    y > fruitY + fruitSize + margin)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Generar opciones de respuesta
+        function generateOptions(correctAnswer) {
+            optionsEl.innerHTML = "";
+            const options = [correctAnswer];
+
+            // Asegurar que las opciones sean relevantes al rango posible
+            const maxOptions = Math.min(10, correctAnswer + 5);
+
+            while (options.length < 4) {
+                let randomOption;
+                if (correctAnswer <= 3) {
+                    randomOption = Math.floor(Math.random() * 5) + 1;
+                } else {
+                    randomOption = Math.floor(Math.random() * (maxOptions - 1)) + 1;
+                }
+
+                if (!options.includes(randomOption)) {
+                    options.push(randomOption);
+                }
+            }
+
+            // Mezclar opciones
+            shuffleArray(options).forEach(option => {
+                const button = document.createElement("button");
+                button.className = "option-btn";
+                button.textContent = option;
+                button.onclick = () => checkAnswer(option);
+                optionsEl.appendChild(button);
+            });
+        }
+
+        // Verificar respuesta
+        function checkAnswer(selected) {
+            if (!gameActive) return;
+            gameActive = false;
+
+            if (selected === currentQuestion.answer) {
+                // Respuesta correcta
+                correctCount++;
+                showMessage("¡Correcto! 🎉", true);
+
+                // Resaltar las frutas relevantes
+                highlightRelevantFruits();
+
+                if (correctCount >= totalQuestions) {
+                    setTimeout(() => {
+                        showWinPopup();
+                    }, 2000);
+                } else {
+                    setTimeout(() => {
+                        generateQuestion();
+                        gameActive = true;
+                    }, 2000);
+                }
+            } else {
+                // Respuesta incorrecta - el juego continúa sin reiniciar
+                showMessage(`¡Oops! La respuesta correcta era ${currentQuestion.answer}.`, false);
+                highlightRelevantFruits();
+
+                setTimeout(() => {
+                    generateQuestion();
+                    gameActive = true;
+                }, 2000);
+            }
+
+            updateProgress();
+        }
+
+        // Resaltar las frutas relevantes a la pregunta
+        function highlightRelevantFruits() {
+            const fruits = document.querySelectorAll('.fruit');
+
+            fruits.forEach(fruit => {
+                const fruitSize = fruit.classList.contains('small') ? 'small' :
+                    fruit.classList.contains('medium') ? 'medium' : 'large';
+                const fruitType = fruit.textContent;
+
+                let shouldHighlight = false;
+
+                if (currentQuestion.type === "size") {
+                    shouldHighlight = fruitSize === currentQuestion.size;
+                } else {
+                    const fruitName = Object.entries({
+                        "🍎": "manzana",
+                        "🍊": "naranja",
+                        "🍌": "platano",
+                        "🍓": "fresa",
+                        "🍇": "uva",
+                        "🍉": "sandia",
+                        "🍍": "piña",
+                        "🍒": "cereza"
+                    }).find(([icon, name]) => icon === fruitType)?.[1];
+
+                    shouldHighlight = fruitName === currentQuestion.fruit &&
+                        fruitSize === currentQuestion.size;
+                }
+
+                if (shouldHighlight) {
+                    fruit.style.transform = "scale(1.2)";
+                    fruit.style.filter = "drop-shadow(0 0 8px gold) brightness(1.1)";
+                    fruit.style.zIndex = "100";
+                    setTimeout(() => {
+                        fruit.style.transform = "";
+                        fruit.style.filter = "";
+                    }, 1500);
+                }
+            });
+        }
+
+        // Mostrar mensaje
+        function showMessage(text, isCorrect) {
+            messageText.textContent = text;
+            messageEl.style.display = "block";
+            messageEl.className = isCorrect ? "message correct" : "message incorrect";
+
+            setTimeout(() => {
+                messageEl.style.display = "none";
+            }, 2000);
+        }
+
+        // Actualizar progreso
+        function updateProgress() {
+            const progress = (correctCount / totalQuestions) * 100;
+            progressEl.style.width = `${progress}%`;
+            progressText.textContent = `${Math.round(progress)}%`;
+            correctCountEl.textContent = correctCount;
+            totalQuestionsEl.textContent = totalQuestions;
+        }
+
+        // Mostrar ventana de victoria
+        function showWinPopup() {
+            const coinsEarned = correctCount * 3;
+            totalCoinsEarned.textContent = coinsEarned;
+            correctCountWin.textContent = correctCount;
+
+            winPopup.style.display = "block";
+            createConfetti();
+
+            // Guardar monedas ganadas
+            const totalCoins = parseInt(localStorage.getItem("monedasUsuario") || "0");
+            localStorage.setItem("monedasUsuario", totalCoins + coinsEarned);
+
+            // Registrar partida completada para logros
+            let partidas = parseInt(localStorage.getItem("partidasFrutiContador") || "0");
+            localStorage.setItem("partidasFrutiContador", partidas + 1);
+
+            // Notificar al juego principal (si está en iframe)
+            if (window.parent && window.parent.actualizarProgresoLogro) {
+                window.parent.actualizarProgresoLogro();
+            }
+        }
+
+        // Crear efecto de confeti mejorado
+        function createConfetti() {
+            const colors = ["#f44336", "#e91e63", "#9c27b0", "#673ab7", "#3f51b5",
+                "#2196f3", "#03a9f4", "#00bcd4", "#009688", "#4CAF50",
+                "#8BC34A", "#CDDC39", "#FFEB3B", "#FFC107", "#FF9800", "#FF5722"];
+
+            for (let i = 0; i < 200; i++) {
+                const confetti = document.createElement("div");
+                confetti.className = "confetti";
+                confetti.style.left = Math.random() * 100 + "vw";
+                confetti.style.top = "-20px";
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDuration = Math.random() * 3 + 2 + "s";
+                confetti.style.animationDelay = Math.random() * 2 + "s";
+                confetti.style.width = Math.random() * 10 + 8 + "px";
+                confetti.style.height = confetti.style.width;
+
+                // Formas variadas
+                if (Math.random() > 0.5) {
+                    confetti.style.borderRadius = "50%";
+                } else if (Math.random() > 0.7) {
+                    confetti.style.clipPath = "polygon(50% 0%, 0% 100%, 100% 100%)";
+                } else {
+                    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                }
+
+                document.body.appendChild(confetti);
+
+                setTimeout(() => {
+                    confetti.remove();
+                }, 5000);
+            }
+        }
+
+        // Mezclar array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Continuar jugando
+        function continuePlaying() {
+            winPopup.style.display = "none";
+            initGame();
+        }
+
+        // Volver al inicio
+        function goToHome() {
+            window.location.href = "../principal/principal.html";
+        }
+
+        // Event listeners
+        backButton.addEventListener("click", function (e) {
+            if (correctCount > 0 && !confirm("¿Estás seguro de salir? Perderás el progreso de esta partida.")) {
+                e.preventDefault();
+            }
+        });
+
+        // Redimensionar frutas al cambiar tamaño de ventana
+        window.addEventListener('resize', function () {
+            const fruits = document.querySelectorAll('.fruit');
+            fruits.forEach(fruit => {
+                const size = fruit.classList.contains('small') ? 40 :
+                    fruit.classList.contains('medium') ? 100 : 200;
+                fruit.style.fontSize = `${size}px`;
+            });
+        });
+
+        // Iniciar el juego al cargar
+        window.onload = initGame;
+    </script>
+</body>
+
+</html>
