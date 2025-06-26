@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aventura Numérica</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="../styles.css">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+  <header>
+    <div class="user-wrapper">
+      <div class="user-info" id="user-info" onclick="mostrarOpcionesUsuario()">
+        <i class="fas fa-user"></i>
+        <div class="user-details">
+          <span id="username">Usuario</span>
+          <div class="level-info">
+            <span id="user-level">Lvl 1</span>
+            <div class="exp-bar">
+              <div id="exp-progress" class="exp-progress"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="moneda-container">
+        <img src="../assets/moneda.png" alt="Moneda" class="moneda-icon">
+        <span id="coin-count">0</span>
+      </div>
+    </div>
+
+    <div class="buttons-container">
+      <div class="shop-button" onclick="mostrarTienda()">
+        <i class="fas fa-store"></i>
+      </div>
+      <div class="leaderboard-button" onclick="mostrarClasificacion()">
+        <i class="fas fa-table"></i>
+      </div>
+      <div class="trophy-button" onclick="mostrarLogros()">
+        <i class="fas fa-trophy"></i>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="game-container">
+      <div class="game-card first-game" style="background-image: url('../assets/juego1.png');"
+        onclick="window.location.href='../juego1/suma explosiva.html'"></div>
+      <div class="game-title">Suma Explosiva</div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-card second-game" style="background-image: url('../assets/juego3.png');"
+        onclick="window.location.href='../juego2/restamania.html'"></div>
+      <div class="game-title">RestaManía</div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-card second-game"
+        style="background-image: url('../assets/juego4.png'); background-repeat: no-repeat;  background-position: center;"
+        onclick="window.location.href = '../juego3/juego3.html'"></div>
+      <div class="game-title">Isla de las tablas</div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-card" id="juego4-card"
+        style="background-image: url('../assets/juego6.png'); background-repeat: no-repeat;  background-position: center;">
+        <div class="lock-overlay" id="juego4-lock">🔒</div>
+      </div>
+      <div class="game-title">Tesoro del Pirata</div>
+    </div>
+
+    <div class="game-container">
+      <div class="game-card" id="juego5-card" style="background-color: #e0e0e0; position: relative;">
+        <div class="lock-overlay" id="juego5-lock">🔒</div>
+      </div>
+      <div class="game-title">FrutiContador</div>
+    </div>
+  </main>
+
+  <!-- Popup de desbloqueo -->
+  <div id="desbloqueo-popup" class="popup">
+    <div class="popup-content" style="text-align: center;">
+      <span class="close-btn" onclick="cerrarDesbloqueo()">&times;</span>
+      <h2>Desbloquear Juego</h2>
+      <p id="mensaje-desbloqueo">¿Deseas desbloquear este juego por 50 monedas?</p>
+      <div style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
+        <button onclick="comprarJuego()"
+          style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 5px;">Sí,
+          desbloquear</button>
+        <button onclick="cerrarDesbloqueo()"
+          style="background-color: #f44336; color: white; padding: 10px 20px; border: none; border-radius: 5px;">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup de Logros -->
+  <div id="logros-popup" class="popup">
+    <div class="popup-content">
+      <span class="close-btn" onclick="cerrarLogros()">&times;</span>
+      <h2>Logros</h2>
+      <div id="logros-container"></div>
+    </div>
+  </div>
+
+  <!-- Popup de Reinicio -->
+  <div id="popup-reinicio" class="popup">
+    <div class="popup-content">
+      <span class="close-btn" onclick="cerrarPopupReinicio()">&times;</span>
+      <h2>Información del Usuario</h2>
+      <div class="user-profile-info">
+        <div class="profile-avatar">
+          <i class="fas fa-user-circle"></i>
+        </div>
+        <div class="profile-details">
+          <h3 id="profile-username">Usuario</h3>
+          <div class="profile-level">
+            <span id="profile-level">Nivel 1</span>
+            <div class="exp-bar">
+              <div id="profile-exp-progress" class="exp-progress"></div>
+            </div>
+          </div>
+          <div class="profile-rank" id="profile-rank">Novato Matemático</div>
+        </div>
+      </div>
+      <div class="reset-section">
+        <h3>Opciones de Cuenta</h3>
+        <p>Esta acción borrará tu nombre, monedas, logros y progreso de las islas. ¿Estás seguro?</p>
+        <button onclick="reiniciarProgreso()" class="reset-button">Reiniciar Progreso</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup de Tienda -->
+  <div id="tienda-popup" class="popup">
+    <div class="tienda-content">
+      <span class="close-btn" onclick="cerrarTienda()">&times;</span>
+      <h2>🏪 Tienda de Recompensas</h2>
+      <p>Gasta tus monedas en estos artículos especiales</p>
+      <div class="tienda-grid" id="tienda-items">
+        <!-- Los ítems se generarán dinámicamente con JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup de Subida de Nivel -->
+  <div id="nivel-up-popup" class="nivel-up-popup" style="display: none;">
+    <div class="nivel-up-content">
+      <div class="nivel-up-icon">
+        <i class="fas fa-trophy"></i>
+      </div>
+      <h2 class="nivel-up-title">¡Subiste de Nivel!</h2>
+      <div class="nivel-up-details">
+        <span class="nivel-up-text">Ahora eres</span>
+        <span class="nivel-up-rank" id="nivel-up-rank">Novato Matemático</span>
+      </div>
+      <div class="nivel-up-level">Nivel <span id="nivel-up-level">1</span></div>
+    </div>
+  </div>
+  <!-- Firebase y scripts -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <script>
+    // Configuración de Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyAmFbfd3zpZ7Y6v_yYT9KD4-a_hVuiAc3Y",
+      authDomain: "aventura-numerica.firebaseapp.com",
+      databaseURL: "https://aventura-numerica-default-rtdb.firebaseio.com",
+      projectId: "aventura-numerica",
+      storageBucket: "aventura-numerica.appspot.com",
+      messagingSenderId: "996349279934",
+      appId: "1:996349279934:web:7b582f4142fa7719cfa8ef"
+    };
+
+    // Inicializa Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Función para guardar los datos del usuario en Firebase
+    function guardarDatosUsuario() {
+      const nombre = localStorage.getItem("nombreUsuario") || "Invitado";
+      const monedas = parseInt(localStorage.getItem("monedasUsuario") || 0);
+      const nivel = parseInt(localStorage.getItem("userLevel") || 1);
+
+      database.ref('usuarios/' + nombre).set({
+        nombre: nombre,
+        monedas: monedas,
+        nivel: nivel,
+        ultimaActualizacion: firebase.database.ServerValue.TIMESTAMP
+      });
+    }
+
+    // Función para mostrar la tabla de clasificación
+    async function mostrarClasificacion() {
+      try {
+        guardarDatosUsuario(); // Guarda los datos actuales primero
+
+        const snapshot = await database.ref('usuarios').orderByChild('monedas').once('value');
+        const usuariosData = snapshot.val();
+
+        if (!usuariosData) {
+          alert("No hay datos de clasificación aún.");
+          return;
+        }
+
+        const usuariosArray = Object.values(usuariosData);
+        usuariosArray.sort((a, b) => b.monedas - a.monedas || b.nivel - a.nivel);
+
+        let html = `
+          <div class="popup-content">
+            <span class="close-btn" onclick="cerrarClasificacion()">&times;</span>
+            <h2>🏆 Tabla de Clasificación</h2>
+            <table class="leaderboard-table">
+              <thead>
+                <tr>
+                  <th>Posición</th>
+                  <th>Nombre</th>
+                  <th>Nivel</th>
+                  <th>Monedas</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+
+        usuariosArray.forEach((usuario, index) => {
+          let medalIcon = '';
+          if (index === 0) medalIcon = '<span class="medal gold">🥇</span>';
+          else if (index === 1) medalIcon = '<span class="medal silver">🥈</span>';
+          else if (index === 2) medalIcon = '<span class="medal bronze">🥉</span>';
+
+          const currentUserClass = usuario.nombre === localStorage.getItem("nombreUsuario") ?
+            'style="background-color: #e3f2fd;"' : '';
+
+          html += `
+            <tr ${currentUserClass}>
+              <td>${medalIcon} ${index + 1}</td>
+              <td>${usuario.nombre}</td>
+              <td>${usuario.nivel}</td>
+              <td>${usuario.monedas}</td>
+            </tr>
+          `;
+        });
+
+        html += `
+              </tbody>
+            </table>
+          </div>
+        `;
+
+        const popup = document.createElement('div');
+        popup.className = 'popup';
+        popup.id = 'leaderboard-popup';
+        popup.innerHTML = html;
+        document.body.appendChild(popup);
+        popup.style.display = 'flex';
+
+      } catch (error) {
+        console.error("Error al cargar la clasificación:", error);
+        alert("Ocurrió un error al cargar la clasificación. Intenta nuevamente.");
+      }
+    }
+
+    function cerrarClasificacion() {
+      const popup = document.getElementById('leaderboard-popup');
+      if (popup) popup.remove();
+    }
+
+    // Resto de tus funciones (mantenidas igual)
+    const rangosPorNivel = {
+      1: { nombre: "Novato Matemático", color: "#9E9E9E" },
+      2: { nombre: "Aprendiz de Números", color: "#4CAF50" },
+      3: { nombre: "Calculador Principiante", color: "#2196F3" },
+      4: { nombre: "Guerrero de las Matematicas", color: "#FF9800" },
+      5: { nombre: "Mago de las Operaciones", color: "#9C27B0" },
+      6: { nombre: "Sabio de las Matematicas", color: "#F44336" },
+      7: { nombre: "Experto en Operaciones", color: "#00BCD4" },
+      8: { nombre: "Maestro del Cálculo", color: "#FF5722" },
+      9: { nombre: "Gran Matemático", color: "#673AB7" },
+      10: { nombre: "Leyenda Matemática", color: "#FFD700" }
+    };
+
+    // Configuración de logros
+    const logrosConfig = [
+      {
+        id: 5,
+        titulo: "Genio de la suma en progreso",
+        juego: "Suma Explosiva",
+        descripcion: "Completa el juego 5 veces",
+        recompensa: 5,
+        imagen: "../assets/juego1.png",
+        progresoKey: "partidasSumaExplosiva",
+        required: 5,
+      },
+      {
+        id: 10,
+        titulo: "Amateur sumando",
+        juego: "Suma Explosiva",
+        descripcion: "Completa el juego 10 veces",
+        recompensa: 15,
+        imagen: "../assets/juego1.png",
+        progresoKey: "partidasSumaExplosiva",
+        required: 10,
+      },
+      {
+        id: 20,
+        titulo: "Experto en sumas",
+        juego: "Suma Explosiva",
+        descripcion: "Completa el juego 20 veces",
+        recompensa: 30,
+        imagen: "../assets/juego1.png",
+        progresoKey: "partidasSumaExplosiva",
+        required: 20,
+      },
+      {
+        id: 25,
+        titulo: "Piloto Novato",
+        juego: "RestaManía",
+        descripcion: "Gana 5 carreras",
+        recompensa: 5,
+        imagen: "../assets/juego3.png",
+        progresoKey: "partidasRestaMania",
+        required: 5,
+      },
+      {
+        id: 30,
+        titulo: "Maestro del Circuito",
+        juego: "RestaManía",
+        descripcion: "Gana 10 carreras",
+        recompensa: 20,
+        imagen: "../assets/juego3.png",
+        progresoKey: "partidasRestaMania",
+        required: 10,
+      },
+      {
+        id: "tablas",
+        titulo: "Amo de las tablas",
+        juego: "Isla de las tablas",
+        descripcion: "Desbloquea todas las islas",
+        recompensa: 30,
+        imagen: "../assets/juego4.png",
+        progresoKey: "islasDesbloqueadas",
+        required: "TODAS_COMPLETADAS",
+        verificarCompletado: function () {
+          const data = localStorage.getItem('islasDesbloqueadas');
+          if (data === "TODAS_COMPLETADAS") return true;
+          if (data) {
+            try {
+              const islas = JSON.parse(data);
+              return islas.length >= 9;
+            } catch (e) {
+              return false;
+            }
+          }
+          return false;
+        }
+      },
+      // NUEVOS LOGROS PARA EL JUEGO 4 (TESORO DEL PIRATA)
+      {
+        id: 40,
+        titulo: "Buscador de Tesoros",
+        juego: "Tesoro del Pirata",
+        descripcion: "Completa 5 partidas del Tesoro del Pirata",
+        recompensa: 10,
+        imagen: "../assets/juego6.png",
+        progresoKey: "partidasTesoroPirata",
+        required: 5
+      },
+      {
+        id: 45,
+        titulo: "Capitán del Tesoro",
+        juego: "Tesoro del Pirata",
+        descripcion: "Completa 10 partidas del Tesoro del Pirata",
+        recompensa: 30,
+        imagen: "../assets/juego6.png",
+        progresoKey: "partidasTesoroPirata",
+        required: 10
+      }
+    ];
+
+    // Configuración de la tienda
+    const itemsTienda = [
+      {
+        id: 1,
+        nombre: "Fondo Noche",
+        descripcion: "Cambia de escenario a uno nocturno",
+        imagen: "../assets/Fondonoche.png",
+        precio: Math.floor(Math.random() * 21) + 30, // Entre 30 y 50
+        tipo: "fondo"
+      },
+      {
+        id: 2,
+        nombre: "Monedas Dobles",
+        descripcion: "En cada juego recibiras el doble de monedas",
+        imagen: "../assets/Doblemoneda.png",
+        precio: Math.floor(Math.random() * 21) + 30,
+        tipo: "powerup"
+      },
+      {
+        id: 3,
+        nombre: "Proximamente",
+        descripcion: "En un futuro",
+        imagen: "../assets/tienda/libro.png",
+        precio: Math.floor(Math.random() * 21) + 30,
+        tipo: "otro"
+      }
+    ];
+
+    // Configuración del sistema de niveles
+    const nivelConfig = {
+      expPorJuego: 20, // EXP por cada juego completado
+      expNiveles: [0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000], // EXP necesaria para cada nivel (índice = nivel)
+      maxNivel: 10
+    };
+
+    // Función para obtener el rango del usuario según su nivel
+    function obtenerRangoUsuario(nivel) {
+      return rangosPorNivel[nivel] || rangosPorNivel[1];
+    }
+
+    // Función para mostrar la animación de subida de nivel
+    function mostrarNivelUp(nuevoNivel) {
+      const rango = obtenerRangoUsuario(nuevoNivel);
+      const popup = document.getElementById('nivel-up-popup');
+
+      document.getElementById('nivel-up-rank').textContent = rango.nombre;
+      document.getElementById('nivel-up-rank').style.color = rango.color;
+      document.getElementById('nivel-up-level').textContent = nuevoNivel;
+
+      popup.style.display = 'flex';
+
+      // Ocultar después de 3 segundos
+      setTimeout(() => {
+        popup.style.display = 'none';
+      }, 3000);
+    }
+
+    // Función para ganar EXP al completar un juego
+    function ganarExpPorJuego() {
+      let expActual = parseInt(localStorage.getItem('userExp') || 0);
+      const nivelActual = parseInt(localStorage.getItem('userLevel') || 1);
+
+      // Solo ganar EXP si no se ha alcanzado el nivel máximo
+      if (nivelActual < nivelConfig.maxNivel) {
+        expActual += nivelConfig.expPorJuego;
+        localStorage.setItem('userExp', expActual);
+        actualizarUIUsuario();
+
+        // Verificar si subió de nivel
+        verificarSubidaNivel();
+      }
+    }
+
+    // Función para verificar si el usuario subió de nivel
+    function verificarSubidaNivel() {
+      const expActual = parseInt(localStorage.getItem('userExp') || 0);
+      let nivelActual = parseInt(localStorage.getItem('userLevel') || 1);
+
+      // Verificar si alcanzó la EXP necesaria para el siguiente nivel
+      if (nivelActual < nivelConfig.maxNivel && expActual >= nivelConfig.expNiveles[nivelActual]) {
+        nivelActual++;
+        localStorage.setItem('userLevel', nivelActual);
+        mostrarNivelUp(nivelActual);
+        actualizarUIUsuario();
+      }
+    }
+
+    // Función para actualizar la UI del usuario (nivel y EXP)
+    function actualizarUIUsuario() {
+      const nivel = parseInt(localStorage.getItem('userLevel') || 1);
+      const exp = parseInt(localStorage.getItem('userExp') || 0);
+      const rango = obtenerRangoUsuario(nivel);
+
+      // Calcular EXP necesaria para el nivel actual y el siguiente
+      const expNecesariaActual = nivelConfig.expNiveles[nivel];
+      const expNecesariaAnterior = nivelConfig.expNiveles[nivel - 1];
+      const expEnEsteNivel = exp - expNecesariaAnterior;
+      const expParaSiguienteNivel = expNecesariaActual - expNecesariaAnterior;
+      const porcentajeExp = (expEnEsteNivel / expParaSiguienteNivel) * 100;
+
+      document.getElementById('user-level').textContent = `Lvl ${nivel}`;
+      document.getElementById('exp-progress').style.width = `${porcentajeExp}%`;
+
+      // Actualizar también en el perfil si está visible
+      if (document.getElementById('popup-reinicio').style.display === 'flex') {
+        actualizarPerfilUsuario();
+      }
+    }
+
+    // Función para actualizar la información del perfil del usuario
+    function actualizarPerfilUsuario() {
+      const nivel = parseInt(localStorage.getItem('userLevel') || 1);
+      const exp = parseInt(localStorage.getItem('userExp') || 0);
+      const rango = obtenerRangoUsuario(nivel);
+
+      // Calcular EXP necesaria para el nivel actual y el siguiente
+      const expNecesariaActual = nivelConfig.expNiveles[nivel];
+      const expNecesariaAnterior = nivelConfig.expNiveles[nivel - 1];
+      const expEnEsteNivel = exp - expNecesariaAnterior;
+      const expParaSiguienteNivel = expNecesariaActual - expNecesariaAnterior;
+      const porcentajeExp = (expEnEsteNivel / expParaSiguienteNivel) * 100;
+
+      document.getElementById('profile-username').textContent = localStorage.getItem('nombreUsuario') || 'Usuario';
+      document.getElementById('profile-level').textContent = `Nivel ${nivel}`;
+      document.getElementById('profile-exp-progress').style.width = `${porcentajeExp}%`;
+      document.getElementById('profile-rank').textContent = rango.nombre;
+      document.getElementById('profile-rank').style.color = rango.color;
+    }
+
+    // Funciones de la tienda
+    function mostrarTienda() {
+      const tiendaPopup = document.getElementById('tienda-popup');
+      const tiendaContainer = document.getElementById('tienda-items');
+
+      tiendaContainer.innerHTML = '';
+
+      itemsTienda.forEach(item => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'item-tienda';
+
+        // Verificar si el artículo ya fue comprado
+        let comprado = localStorage.getItem(`item_${item.id}_comprado`) === 'true';
+        const usandoFondo = localStorage.getItem('fondoNocturnoActivo') === 'true' && item.id === 1;
+
+        // Caso especial para monedas dobles
+        if (item.id === 2) {
+          const monedasDoblesExpirado = !localStorage.getItem('monedasDoblesExpira') ||
+            new Date().getTime() > parseInt(localStorage.getItem('monedasDoblesExpira'));
+          comprado = comprado && !monedasDoblesExpirado;
+        }
+
+        itemDiv.innerHTML = `
+          <img src="${item.imagen}" alt="${item.nombre}">
+          <h3>${item.nombre}</h3>
+          <p>${item.descripcion}</p>
+          <div class="precio">Precio: ${item.precio} <img src="../assets/moneda.png" style="width:20px; vertical-align:middle;"></div>
+          <button class="btn-comprar" id="btn-item-${item.id}" onclick="${comprado
+            ? (item.id === 1
+              ? (usandoFondo ? 'quitarFondoNoche()' : 'usarFondoNoche()')
+              : 'comprarItem(' + item.id + ')')
+            : 'comprarItem(' + item.id + ')'}"  
+              ${parseInt(localStorage.getItem('monedasUsuario') || '0') < item.precio && !comprado ? 'disabled' : ''}>
+              ${comprado ? (item.id === 1 ? (usandoFondo ? 'Quitar' : 'Usar') : 'Comprado') : 'COMPRAR'}
+          </button>
+        `;
+        tiendaContainer.appendChild(itemDiv);
+      });
+
+      if (localStorage.getItem('monedasDoblesActivo') === 'true') {
+        iniciarTemporizadorMonedasDobles();
+      }
+
+      tiendaPopup.style.display = 'flex';
+    }
+
+    function cerrarTienda() {
+      document.getElementById('tienda-popup').style.display = 'none';
+    }
+
+    function iniciarTemporizadorMonedasDobles() {
+      const boton = document.getElementById('btn-item-2');
+      if (!boton) return;
+
+      function actualizarTiempo() {
+        const ahora = new Date().getTime();
+        const expiracion = parseInt(localStorage.getItem('monedasDoblesExpira') || '0');
+        const diferencia = expiracion - ahora;
+
+        if (diferencia > 0) {
+          const horas = Math.floor((diferencia / (1000 * 60 * 60)) % 24);
+          const minutos = Math.floor((diferencia / (1000 * 60)) % 60);
+          const segundos = Math.floor((diferencia / 1000) % 60);
+          boton.textContent = `⏱️ ${horas}h ${minutos}m ${segundos}s`;
+          boton.disabled = true;
+        } else {
+          // Limpiar todo el estado cuando expire
+          clearInterval(window.temporizadorMonedasDobles);
+          localStorage.setItem('monedasDoblesActivo', 'false');
+          localStorage.removeItem('monedasDoblesExpira');
+          localStorage.removeItem('item_2_comprado'); // Esto es clave para permitir nueva compra
+
+          // Restaurar el botón a su estado original
+          boton.textContent = 'COMPRAR';
+          boton.disabled = false;
+          boton.onclick = function () { comprarItem(2); };
+
+          alert('⏳ Se ha vencido el Booster de Monedas Dobles.');
+          mostrarTienda(); // Para que vuelva a estar disponible
+        }
+      }
+
+      // Limpiar temporizador anterior si existe
+      if (window.temporizadorMonedasDobles) {
+        clearInterval(window.temporizadorMonedasDobles);
+      }
+
+      actualizarTiempo();
+      window.temporizadorMonedasDobles = setInterval(actualizarTiempo, 1000);
+    }
+
+    function comprarItem(itemId) {
+      const item = itemsTienda.find(i => i.id === itemId);
+      const monedas = parseInt(localStorage.getItem('monedasUsuario') || '0');
+
+      if (monedas >= item.precio) {
+        // Restar monedas
+        const nuevasMonedas = monedas - item.precio;
+        localStorage.setItem('monedasUsuario', nuevasMonedas);
+        document.getElementById('coin-count').textContent = nuevasMonedas;
+
+        // Marcar como comprado
+        localStorage.setItem(`item_${item.id}_comprado`, 'true');
+
+        // Si es el fondo nocturno, activarlo automáticamente
+        if (item.id === 1) {
+          usarFondoNoche();
+        }
+        if (item.id === 2) { // ID de Monedas Dobles
+          const now = new Date().getTime();
+          const dosHorasDespues = now + 2 * 60 * 60 * 1000; // 2 horas en milisegundos
+          localStorage.setItem('monedasDoblesActivo', 'true');
+          localStorage.setItem('monedasDoblesExpira', dosHorasDespues.toString());
+          localStorage.setItem('item_2_comprado', 'true'); // Asegurar que se marque como comprado
+          iniciarTemporizadorMonedasDobles(); // Iniciar el contador visual
+        }
+
+        // Mostrar mensaje de éxito
+        alert(`¡Felicidades! Has comprado ${item.nombre} por ${item.precio} monedas.`);
+
+        // Actualizar botones de compra
+        mostrarTienda();
+      } else {
+        alert(`No tienes suficientes monedas para comprar ${item.nombre}. Necesitas ${item.precio} monedas.`);
+      }
+    }
+
+    function usarFondoNoche() {
+      document.body.classList.add('fondo-noche');
+      localStorage.setItem('fondoNocturnoActivo', 'true');
+      mostrarTienda(); // Actualizar el botón en la tienda
+    }
+
+    function quitarFondoNoche() {
+      document.body.classList.remove('fondo-noche');
+      localStorage.setItem('fondoNocturnoActivo', 'false');
+      mostrarTienda(); // Actualizar el botón en la tienda
+    }
+
+    // Variables para el desbloqueo de juegos
+    let juegoADesbloquear = null;
+    const PRECIO_DESBLOQUEO = 5;
+
+    // Funciones para el desbloqueo de juegos
+    function mostrarPopupDesbloqueo(juegoId) {
+      juegoADesbloquear = juegoId;
+      const popup = document.getElementById('desbloqueo-popup');
+      const mensaje = document.getElementById('mensaje-desbloqueo');
+
+      const monedas = parseInt(localStorage.getItem('monedasUsuario') || '0');
+
+      if (monedas >= PRECIO_DESBLOQUEO) {
+        mensaje.textContent = `¿Deseas desbloquear este juego por ${PRECIO_DESBLOQUEO} monedas?`;
+      } else {
+        mensaje.textContent = `Necesitas ${PRECIO_DESBLOQUEO} monedas para desbloquear este juego. Tienes ${monedas}.`;
+        document.querySelector('#desbloqueo-popup button[onclick="comprarJuego()"]').disabled = true;
+      }
+
+      popup.style.display = 'flex';
+    }
+
+    function cerrarDesbloqueo() {
+      document.getElementById('desbloqueo-popup').style.display = 'none';
+      juegoADesbloquear = null;
+    }
+
+    function comprarJuego() {
+      const monedas = parseInt(localStorage.getItem('monedasUsuario') || '0');
+
+      if (monedas >= PRECIO_DESBLOQUEO) {
+        // Restar monedas
+        const nuevasMonedas = monedas - PRECIO_DESBLOQUEO;
+        localStorage.setItem('monedasUsuario', nuevasMonedas);
+        document.getElementById('coin-count').textContent = nuevasMonedas;
+
+        // Marcar juego como desbloqueado
+        localStorage.setItem(`juego_${juegoADesbloquear}_desbloqueado`, 'true');
+
+        // Actualizar visualización
+        actualizarJuegosBloqueados();
+
+        // Mostrar mensaje de éxito
+        alert(`¡Felicidades! Has desbloqueado el juego.`);
+
+        // Cerrar popup
+        cerrarDesbloqueo();
+      }
+    }
+
+    function actualizarJuegosBloqueados() {
+      // Juego 4 - Tesoro del Pirata
+      const juego4Desbloqueado = localStorage.getItem('juego_4_desbloqueado') === 'true';
+      const juego4Card = document.getElementById('juego4-card');
+      const juego4Lock = document.getElementById('juego4-lock');
+
+      if (juego4Desbloqueado) {
+        juego4Card.classList.remove('bloqueado');
+        juego4Card.style.backgroundImage = "url('../assets/juego6.png')";
+        juego4Card.onclick = function () { window.location.href = '../juego4/juego4.html' };
+        juego4Lock.style.display = 'none';
+      } else {
+        juego4Card.classList.add('bloqueado');
+        juego4Card.onclick = function () { mostrarPopupDesbloqueo(4) };
+        juego4Lock.style.display = 'block';
+      }
+
+      // Juego 5 - Próximamente
+      const juego5Desbloqueado = localStorage.getItem('juego_5_desbloqueado') === 'true';
+      const juego5Card = document.getElementById('juego5-card');
+      const juego5Lock = document.getElementById('juego5-lock');
+
+      if (juego5Desbloqueado) {
+        juego5Card.classList.remove('bloqueado');
+        juego5Card.style.backgroundImage = "url('../assets/juego5.png')";
+        juego5Card.onclick = function () { window.location.href = '../juego5/juego5.html' };
+        juego5Lock.style.display = 'none';
+      } else {
+        juego5Card.classList.add('bloqueado');
+        juego5Card.onclick = function () { mostrarPopupDesbloqueo(5) };
+        juego5Lock.style.display = 'block';
+      }
+    }
+
+    // Funciones de logros
+    function mostrarLogros() {
+      document.getElementById('logros-popup').style.display = 'flex';
+      actualizarProgresoLogro();
+    }
+
+    function crearHTMLLogros() {
+      const contenedor = document.getElementById("logros-container");
+      contenedor.innerHTML = "";
+      logrosConfig.forEach((logro) => {
+        const logroDiv = document.createElement("div");
+        logroDiv.className = "logro";
+
+        const isTablas = logro.id === "tablas";
+        const progresoId = `barra-progreso-${logro.id}`;
+        const trofeoId = `trofeo-logro-${logro.id}`;
+        const btnId = `claim-btn-${logro.id}`;
+
+        logroDiv.innerHTML = `
+          <img src="${logro.imagen}" class="logro-img" alt="${logro.juego}">
+          <div class="logro-info">
+            <h3>${logro.titulo}</h3>
+            <p class="logro-juego">${logro.juego}</p>
+            <p class="logro-desc">${logro.descripcion}</p>
+            <div class="recompensa">
+              Recompensa: ${logro.recompensa} <img src="../assets/moneda.png" alt="moneda" class="recompensa-icon">
+            </div>
+            <div class="progress-bar">
+              <div id="${progresoId}" class="progreso"></div>
+            </div>
+            <button class="claim-btn" id="${btnId}" onclick="reclamarRecompensa('${logro.id}')" style="display: none;">
+              🎉 Reclamar recompensa
+            </button>
+          </div>
+          <img id="${trofeoId}" src="../assets/trofeo-gris.png" class="logro-trofeo" alt="Trofeo">
+        `;
+        contenedor.appendChild(logroDiv);
+      });
+    }
+
+    function cerrarLogros() {
+      document.getElementById('logros-popup').style.display = 'none';
+    }
+
+    function reclamarRecompensa(logroId) {
+      const logro = logrosConfig.find(l => l.id == logroId);
+      if (!logro) return;
+
+      const recompensaKey = `recompensaReclamada${logroId}`;
+
+      if (!localStorage.getItem(recompensaKey)) {
+        let monedas = parseInt(localStorage.getItem("monedasUsuario") || "0");
+        monedas += logro.recompensa;
+
+        localStorage.setItem("monedasUsuario", monedas);
+        localStorage.setItem(recompensaKey, "true");
+
+        document.getElementById("coin-count").textContent = monedas;
+        document.getElementById(`claim-btn-${logroId}`).style.display = "none";
+
+        // Ganar EXP al reclamar logro (5 EXP por cada logro)
+        ganarExpPorJuego();
+
+        alert(`🎉 Has recibido ${logro.recompensa} monedas y 5 EXP por tu logro "${logro.titulo}"`);
+      }
+    }
+
+    function actualizarProgresoLogro() {
+      logrosConfig.forEach(logro => {
+        const progresoElem = document.getElementById(`barra-progreso-${logro.id}`);
+        const trofeoElem = document.getElementById(`trofeo-logro-${logro.id}`);
+        const btnElem = document.getElementById(`claim-btn-${logro.id}`);
+
+        let completado = false;
+        let progreso = 0;
+
+        if (logro.id === "tablas") {
+          // Manejo especial para el logro de las tablas
+          completado = logro.verificarCompletado();
+          progreso = completado ? 100 : 0;
+        } else {
+          // Logros normales
+          const actual = parseInt(localStorage.getItem(logro.progresoKey) || "0");
+          const requerido = logro.required;
+          completado = actual >= requerido;
+          progreso = Math.min(100, (actual / requerido) * 100);
+        }
+
+        progresoElem.style.width = `${progreso}%`;
+        trofeoElem.src = completado ? "../assets/trofeo-dorado.png" : "../assets/trofeo-gris.png";
+
+        if (completado) {
+          const logroKey = `logroDesbloqueado${logro.id}`;
+          const recompensaKey = `recompensaReclamada${logro.id}`;
+
+          if (!localStorage.getItem(logroKey)) {
+            alert(`🎖️ ¡Logro desbloqueado! ${logro.titulo}`);
+            localStorage.setItem(logroKey, "true");
+          }
+
+          if (!localStorage.getItem(recompensaKey)) {
+            btnElem.style.display = "inline-block";
+          } else {
+            btnElem.style.display = "none";
+          }
+        } else {
+          btnElem.style.display = "none";
+        }
+      });
+    }
+
+    // Funciones de usuario
+    function mostrarOpcionesUsuario() {
+      actualizarPerfilUsuario();
+      document.getElementById("popup-reinicio").style.display = "flex";
+    }
+
+    function cerrarPopupReinicio() {
+      document.getElementById("popup-reinicio").style.display = "none";
+    }
+
+    function reiniciarProgreso() {
+      localStorage.clear();
+      // Inicializar sistema de niveles
+      localStorage.setItem('userLevel', '1');
+      localStorage.setItem('userExp', '0');
+      alert("🎯 Tu progreso ha sido reiniciado.");
+      location.reload();
+    }
+
+    function pedirNombreUsuario() {
+      let nombre = localStorage.getItem("nombreUsuario");
+      if (!nombre) {
+        nombre = prompt("¡Hola! Ingresa tu nombre para comenzar:");
+        if (nombre) {
+          localStorage.setItem("nombreUsuario", nombre);
+          // Inicializar sistema de niveles para nuevo usuario
+          localStorage.setItem('userLevel', '1');
+          localStorage.setItem('userExp', '0');
+        } else {
+          nombre = "Invitado";
+        }
+      }
+      document.getElementById("username").textContent = nombre;
+      actualizarUIUsuario();
+    }
+
+    function inicializarMonedas() {
+      let monedas = localStorage.getItem("monedasUsuario");
+      if (!monedas) {
+        monedas = 0;
+        localStorage.setItem("monedasUsuario", monedas);
+      }
+      document.getElementById("coin-count").textContent = monedas;
+    }
+
+    // Event listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      const popup = document.querySelector('.popup');
+      const popupContent = document.querySelector('.popup-content');
+      const closeBtn = document.querySelector('.close-btn');
+      const popupReinicio = document.getElementById('popup-reinicio');
+      const logrosPopup = document.getElementById('logros-popup');
+
+      popupReinicio.addEventListener('click', (event) => {
+        const content = popupReinicio.querySelector('.popup-content');
+        if (!content.contains(event.target)) {
+          popupReinicio.style.display = 'none';
+        }
+      });
+
+      // Cerrar logros al hacer clic fuera
+      logrosPopup.addEventListener('click', function (e) {
+        const logrosContent = this.querySelector('.popup-content');
+        if (!logrosContent.contains(e.target)) {
+          cerrarLogros();
+        }
+      });
+
+      // Cerrar al hacer clic en la "X"
+      closeBtn.addEventListener('click', () => {
+        popup.style.display = 'none';
+      });
+
+      // Cerrar al hacer clic fuera del contenido
+      popup.addEventListener('click', (event) => {
+        if (!popupContent.contains(event.target)) {
+          popup.style.display = 'none';
+        }
+      });
+
+      // Cerrar tienda al hacer clic fuera
+      document.getElementById('tienda-popup').addEventListener('click', function (e) {
+        if (e.target === this) {
+          cerrarTienda();
+        }
+      });
+
+      // Aplicar fondo nocturno si está activo
+      if (localStorage.getItem('fondoNocturnoActivo') === 'true') {
+        document.body.classList.add('fondo-noche');
+      }
+    });
+
+    // Inicialización al cargar
+    window.onload = function () {
+      pedirNombreUsuario();
+      inicializarMonedas();
+      crearHTMLLogros();
+      actualizarProgresoLogro();
+      actualizarJuegosBloqueados();
+      actualizarUIUsuario();
+
+      // Iniciar temporizador de monedas dobles si está activo
+      if (localStorage.getItem('monedasDoblesActivo') === 'true') {
+        iniciarTemporizadorMonedasDobles();
+      }
+      // Actualiza datos en Firebase periódicamente
+      setInterval(guardarDatosUsuario, 30000);
+    }
+  </script>
+</body>
+
+</html>
