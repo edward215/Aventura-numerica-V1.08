@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Islas de las Tablas</title>
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Comic Sans MS", sans-serif;
+      background: linear-gradient(to top, #1e90ff 50%, #87ceeb 100%);
+      overflow-x: hidden;
+      height: 100%;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      min-height: 100vh;
+    }
+
+    .cloud {
+      position: absolute;
+      font-size: 40px;
+      color: white;
+      font-weight: bold;
+      opacity: 0.4;
+      animation: floatClouds 60s linear infinite;
+      z-index: 0;
+    }
+
+    @keyframes floatClouds {
+      from {
+        left: -20%;
+      }
+
+      to {
+        left: 120%;
+      }
+    }
+
+    #map-container {
+      overflow: hidden;
+      width: 100%;
+      position: relative;
+      margin-top: 60px;
+    }
+
+    #isla-slider {
+      display: flex;
+      transition: transform 0.4s ease;
+      will-change: transform;
+    }
+
+    .isla-item {
+      min-width: 100vw;
+      max-width: 100vw;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .isla-item img {
+      width: 80vw;
+      max-width: 400px;
+      cursor: pointer;
+      z-index: 1;
+    }
+
+    .lock-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 80px;
+      color: #FFD700;
+      pointer-events: none;
+      animation: bounce 1.5s infinite;
+      text-shadow: 0 0 6px rgba(0, 0, 0, 0.7);
+    }
+
+    #btn-islas {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #1e90ff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    #btn-islas:hover {
+      background-color: #187bcd;
+    }
+
+    @keyframes bounce {
+
+      0%,
+      100% {
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      50% {
+        transform: translate(-50%, -55%) scale(1.1);
+      }
+    }
+
+    #bloqueado-msg {
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #fff7d1;
+      color: #444;
+      padding: 20px;
+      border: 2px solid #ffc107;
+      border-radius: 12px;
+      font-size: 18px;
+      text-align: center;
+      z-index: 1000;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+      display: none;
+    }
+
+    #game {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 16px;
+      width: 90vw;
+      max-width: 480px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      z-index: 10;
+      display: none;
+      text-align: center;
+    }
+
+    .drop-zone {
+      border: 2px dashed #555;
+      padding: 20px;
+      margin-top: 15px;
+      border-radius: 10px;
+      background-color: #f0f8ff;
+    }
+
+    .draggable {
+      background: #ffd700;
+      border: 2px solid #daa520;
+      padding: 10px 15px;
+      margin: 8px;
+      display: inline-block;
+      cursor: grab;
+      font-size: 18px;
+      border-radius: 8px;
+    }
+
+    #result {
+      margin-top: 10px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .decor {
+      position: absolute;
+      width: 60px;
+      opacity: 0.8;
+    }
+
+    .bird {
+      top: 40px;
+      right: 10%;
+      animation: flyBird 10s infinite alternate ease-in-out;
+    }
+
+    @keyframes flyBird {
+      from {
+        transform: translateX(0px);
+      }
+
+      to {
+        transform: translateX(-30px) translateY(10px);
+      }
+    }
+
+    .boat {
+      bottom: 10px;
+      left: 20px;
+      animation: floatBoat 5s ease-in-out infinite alternate;
+    }
+
+    @keyframes floatBoat {
+      from {
+        transform: translateY(0px);
+      }
+
+      to {
+        transform: translateY(-10px);
+      }
+    }
+
+    #congrats {
+      font-size: 22px;
+      font-weight: bold;
+      color: green;
+      margin-top: 20px;
+      background-color: #e0ffe0;
+      padding: 15px;
+      border-radius: 12px;
+      display: none;
+    }
+
+    #congrats button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    #congrats button:hover {
+      background-color: #45a049;
+    }
+
+    .back-button {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      background-color: #FFD700;
+      color: #333;
+      padding: 10px 14px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 0.9rem;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+      z-index: 150;
+      transition: background-color 0.3s;
+    }
+
+    .back-button:hover {
+      background-color: #FFC300;
+    }
+
+    @keyframes pop {
+      0% {
+        transform: scale(1);
+      }
+
+      30% {
+        transform: scale(1.3);
+      }
+
+      60% {
+        transform: scale(0.9);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    .cofre-animado {
+      animation: pop 0.6s ease-in-out;
+    }
+
+    .nivel-up-popup {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn 0.5s;
+    }
+
+    .nivel-up-content {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      text-align: center;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      max-width: 300px;
+    }
+
+    .nivel-up-icon {
+      font-size: 60px;
+      color: gold;
+      margin-bottom: 15px;
+    }
+
+    .nivel-up-title {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .nivel-up-rank {
+      font-weight: bold;
+      font-size: 18px;
+      margin: 10px 0;
+      display: block;
+    }
+
+    .nivel-up-level {
+      font-size: 24px;
+      font-weight: bold;
+      color: #1e90ff;
+      margin-top: 10px;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Nubes -->
+  <div class="cloud" style="top: 30px; left: 10%;">5</div>
+  <div class="cloud" style="top: 100px; left: 30%; animation-delay: 10s;">8</div>
+  <div class="cloud" style="top: 50px; left: 60%; animation-delay: 20s;">3</div>
+  <div class="cloud" style="top: 120px; left: 80%; animation-delay: 30s;">7</div>
+  <div class="cloud" style="top: 80px; left: 5%; animation-delay: 15s;">X</div>
+  <div class="cloud" style="top: 40px; left: 25%; animation-delay: 18s;">2</div>
+  <div class="cloud" style="top: 60px; left: 50%; animation-delay: 25s;">9</div>
+
+  <!-- Decoración -->
+  <img src="../assets/juego3/ave.png" class="decor bird" alt="ave decorativa">
+  <img src="../assets/juego3/barco.png" class="decor boat" alt="barco decorativo">
+
+  <!-- Contenedor de islas -->
+  <div id="map-container">
+    <div id="isla-slider"></div>
+  </div>
+
+  <!-- Mensaje bloqueado -->
+  <div id="bloqueado-msg">🔒 Esta isla aún está bloqueada.<br />¡Debes completar la isla anterior para desbloquearla! 🌟
+  </div>
+
+  <!-- Juego -->
+  <div id="game">
+    <h2 id="titulo-isla">Isla Tabla del 1</h2>
+    <div id="question"></div>
+    <div id="options"></div>
+    <div id="result"></div>
+    <div id="congrats">
+      🎉 ¡Felicidades! Puedes avanzar a la siguiente isla. 🌴<br><br>
+      <button id="btn-inicio">🏠 Volver al inicio</button>
+      <button id="btn-seguir">🎮 Seguir jugando</button>
+      <button id="btn-islas">🔁 Escoger isla</button>
+    </div>
+  </div>
+  <a href="../principal/principal.html" class="back-button">⮌ Inicio</a>
+
+  <!-- Cofre de recompensa -->
+  <div id="cofre-popup"
+    style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 0 15px rgba(0,0,0,0.5); text-align: center; z-index: 2000;">
+    <img id="cofre-img" src="../assets/juego3/cofre-close.png" alt="Cofre" style="width: 120px; transition: 0.4s ease;">
+    <br>
+    <button id="abrir-cofre-btn"
+      style="margin-top: 10px; background: gold; padding: 10px 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+      🪙 Abrir cofre
+    </button>
+    <div id="recompensa-texto" style="margin-top: 15px; font-size: 18px; display: none;">
+      Has ganado <span id="monedas-ganadas" style="font-weight: bold;"></span>
+      <img src="../assets/moneda.png" alt="Moneda" style="width: 20px; vertical-align: middle;">
+    </div>
+  </div>
+
+  <!-- Popup de subida de nivel -->
+  <div id="nivel-up-popup" class="nivel-up-popup">
+    <div class="nivel-up-content">
+      <div class="nivel-up-icon">
+        <i class="fas fa-trophy"></i>
+      </div>
+      <h2 class="nivel-up-title">¡Subiste de Nivel!</h2>
+      <div class="nivel-up-details">
+        <span class="nivel-up-text">Ahora eres</span>
+        <span class="nivel-up-rank" id="nivel-up-rank">Novato Matemático</span>
+      </div>
+      <div class="nivel-up-level">Nivel <span id="nivel-up-level">1</span></div>
+    </div>
+  </div>
+
+  <script>
+    // Configuración de rangos por nivel
+    const rangosPorNivel = {
+      1: { nombre: "Novato Matemático", color: "#9E9E9E" },
+      2: { nombre: "Aprendiz de Números", color: "#4CAF50" },
+      3: { nombre: "Calculador Principiante", color: "#2196F3" },
+      4: { nombre: "Guerrero de las Matematicas", color: "#FF9800" },
+      5: { nombre: "Mago de las Operaciones", color: "#9C27B0" },
+      6: { nombre: "Sabio de las Matematicas", color: "#F44336" },
+      7: { nombre: "Experto en Operaciones", color: "#00BCD4" },
+      8: { nombre: "Maestro del Cálculo", color: "#FF5722" },
+      9: { nombre: "Gran Matemático", color: "#673AB7" },
+      10: { nombre: "Leyenda Matemática", color: "#FFD700" }
+    };
+
+    // Configuración del sistema de niveles
+    const nivelConfig = {
+      expPorJuego: 20,
+      expPorDesbloqueoIsla: 10,
+      expNiveles: [0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000],
+      maxNivel: 10
+    };
+
+    const maxTable = 10; // Ahora tenemos 10 islas
+    let currentTable = 1;
+    let unlockedIslas = [];
+    let currentAnswer;
+    let correctStreak = 0;
+    let currentSlide = 0;
+    let operacionesMostradas = [];
+    let cofresContador = 0;
+    let isla10Desbloqueada = false;
+
+    const resultEl = document.getElementById('result');
+    const tituloIsla = document.getElementById('titulo-isla');
+    const gameBox = document.getElementById('game');
+    const congratsBox = document.getElementById('congrats');
+    const slider = document.getElementById('isla-slider');
+    const msg = document.getElementById('bloqueado-msg');
+    const cofrePopup = document.getElementById('cofre-popup');
+    const cofreImg = document.getElementById('cofre-img');
+    const abrirBtn = document.getElementById('abrir-cofre-btn');
+    const textoRecompensa = document.getElementById('recompensa-texto');
+    const monedasSpan = document.getElementById('monedas-ganadas');
+
+    // Función para obtener el rango del usuario según su nivel
+    function obtenerRangoUsuario(nivel) {
+      return rangosPorNivel[nivel] || rangosPorNivel[1];
+    }
+
+    // Función para mostrar la animación de subida de nivel
+    function mostrarNivelUp(nuevoNivel) {
+      const rango = obtenerRangoUsuario(nuevoNivel);
+      const popup = document.getElementById('nivel-up-popup');
+
+      document.getElementById('nivel-up-rank').textContent = rango.nombre;
+      document.getElementById('nivel-up-rank').style.color = rango.color;
+      document.getElementById('nivel-up-level').textContent = nuevoNivel;
+
+      popup.style.display = 'flex';
+
+      setTimeout(() => {
+        popup.style.display = 'none';
+      }, 3000);
+    }
+
+    // Función para ganar EXP
+    function ganarExp(cantidad) {
+      let expActual = parseInt(localStorage.getItem('userExp') || 0);
+      const nivelActual = parseInt(localStorage.getItem('userLevel') || 1);
+
+      if (nivelActual < nivelConfig.maxNivel) {
+        expActual += cantidad;
+        localStorage.setItem('userExp', expActual);
+        verificarSubidaNivel();
+      }
+    }
+
+    // Función para verificar si el usuario subió de nivel
+    function verificarSubidaNivel() {
+      const expActual = parseInt(localStorage.getItem('userExp') || 0);
+      let nivelActual = parseInt(localStorage.getItem('userLevel') || 1);
+
+      if (nivelActual < nivelConfig.maxNivel && expActual >= nivelConfig.expNiveles[nivelActual]) {
+        nivelActual++;
+        localStorage.setItem('userLevel', nivelActual);
+        mostrarNivelUp(nivelActual);
+      }
+    }
+
+    function verificarCofre() {
+      cofresContador++;
+      const randomUmbral = Math.floor(Math.random() * 4) + 3;
+
+      if (cofresContador >= randomUmbral) {
+        cofresContador = 0;
+        mostrarCofre();
+      }
+    }
+
+    function mostrarCofre() {
+      cofreImg.src = '../assets/juego3/cofre-close.png';
+      textoRecompensa.style.display = 'none';
+      abrirBtn.style.display = 'inline-block';
+      cofrePopup.style.display = 'block';
+    }
+
+    abrirBtn.addEventListener('click', () => {
+      abrirBtn.style.display = 'none';
+      cofreImg.src = '../assets/juego3/cofre-open.png';
+      cofreImg.classList.add('cofre-animado');
+      const base = Math.floor(Math.random() * 11) + 5;
+      const recompensa = getRecompensaConBooster(base);
+      monedasSpan.textContent = recompensa;
+      textoRecompensa.style.display = 'block';
+
+      let monedasActuales = parseInt(localStorage.getItem('monedasUsuario') || '0');
+      monedasActuales += recompensa;
+      localStorage.setItem('monedasUsuario', monedasActuales);
+
+      setTimeout(() => {
+        cofrePopup.style.display = 'none';
+        cofreImg.classList.remove('cofre-animado');
+      }, 3000);
+    });
+
+    function saveProgress() {
+      if (unlockedIslas.length < 9) {
+        localStorage.setItem('islasDesbloqueadas', JSON.stringify(unlockedIslas));
+      } else {
+        localStorage.setItem('islasDesbloqueadas', "TODAS_COMPLETADAS");
+      }
+
+      // Guardar estado de completado de isla 10
+      if (localStorage.getItem('isla10Completada') !== 'true') {
+        localStorage.setItem('isla10Completada', 'false');
+      }
+    }
+
+    function loadProgress() {
+      const data = localStorage.getItem('islasDesbloqueadas');
+
+      if (data === "TODAS_COMPLETADAS") {
+        unlockedIslas = Array.from({ length: 9 }, (_, i) => i + 1);
+        isla10Desbloqueada = true;
+        return;
+      }
+
+      if (data) {
+        try {
+          unlockedIslas = JSON.parse(data);
+          isla10Desbloqueada = puedeDesbloquearIsla10();
+        } catch (e) {
+          unlockedIslas = [1];
+          isla10Desbloqueada = false;
+        }
+      } else {
+        unlockedIslas = [1];
+        isla10Desbloqueada = false;
+      }
+
+      if (!unlockedIslas.includes(1)) {
+        unlockedIslas.push(1);
+      }
+
+      // Verificar si isla10Completada existe en localStorage
+      if (localStorage.getItem('isla10Completada') === null) {
+        localStorage.setItem('isla10Completada', 'false');
+      }
+    }
+
+    function puedeDesbloquearIsla10() {
+      for (let i = 1; i <= 9; i++) {
+        if (!unlockedIslas.includes(i)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function renderIslas() {
+      slider.innerHTML = '';
+
+      // Islas 1-9
+      for (let i = 1; i <= 9; i++) {
+        const div = document.createElement('div');
+        div.className = 'isla-item';
+
+        const img = document.createElement('img');
+        img.src = `../assets/juego3/isla${i}.png`;
+
+        if (unlockedIslas.includes(i)) {
+          img.onclick = () => {
+            currentTable = i;
+            currentSlide = i - 1;
+            updateSlidePosition();
+            updateView();
+            gameBox.style.display = 'block';
+            congratsBox.style.display = 'none';
+            correctStreak = 0;
+            operacionesMostradas = [];
+            startGame(i);
+          };
+        } else {
+          const lock = document.createElement('div');
+          lock.className = 'lock-overlay';
+          lock.innerHTML = '🔒';
+          div.appendChild(lock);
+          img.style.opacity = '0.5';
+          img.onclick = () => {
+            msg.style.display = 'block';
+            setTimeout(() => (msg.style.display = 'none'), 3000);
+          };
+        }
+
+        div.appendChild(img);
+        slider.appendChild(div);
+      }
+
+      // Isla 10
+      const div10 = document.createElement('div');
+      div10.className = 'isla-item';
+
+      const img10 = document.createElement('img');
+      img10.src = '../assets/juego3/isla10.png';
+
+      if (isla10Desbloqueada) {
+        img10.onclick = () => {
+          currentTable = 10;
+          currentSlide = 9;
+          updateSlidePosition();
+          updateView();
+          gameBox.style.display = 'block';
+          congratsBox.style.display = 'none';
+          correctStreak = 0;
+          operacionesMostradas = [];
+          startGame(10);
+        };
+      } else {
+        const lock = document.createElement('div');
+        lock.className = 'lock-overlay';
+        lock.innerHTML = '🔒';
+        div10.appendChild(lock);
+        img10.style.opacity = '0.5';
+        img10.onclick = () => {
+          const mensaje = document.getElementById('bloqueado-msg');
+          mensaje.innerHTML = '🔒 Para desbloquear esta isla<br>¡Debes completar todas las otras islas primero! 🌟';
+          mensaje.style.display = 'block';
+          setTimeout(() => (mensaje.style.display = 'none'), 3000);
+        };
+      }
+
+      div10.appendChild(img10);
+      slider.appendChild(div10);
+
+      updateSlidePosition();
+    }
+
+    function updateView() {
+      tituloIsla.textContent = currentTable === 10 ? "Isla Maestra" : `Isla Tabla del ${currentTable}`;
+      gameBox.style.display = 'none';
+      congratsBox.style.display = 'none';
+    }
+
+    function startGame(table) {
+      if (table === 10) {
+        startIsla10();
+        return;
+      }
+
+      if (operacionesMostradas.length >= 10) {
+        operacionesMostradas = [];
+      }
+
+      let num;
+      let intentos = 0;
+      const maxIntentos = 20;
+
+      do {
+        num = Math.floor(Math.random() * 10) + 1;
+        intentos++;
+
+        if (intentos >= maxIntentos) {
+          operacionesMostradas = [];
+          num = Math.floor(Math.random() * 10) + 1;
+          break;
+        }
+      } while (operacionesMostradas.includes(num));
+
+      operacionesMostradas.push(num);
+      currentAnswer = table * num;
+      document.getElementById('question').textContent = `¿Cuánto es ${table} × ${num}?`;
+
+      const opciones = shuffle([
+        currentAnswer,
+        currentAnswer + 1,
+        currentAnswer - 1,
+        currentAnswer + 2,
+      ]);
+
+      const optionsDiv = document.getElementById('options');
+      optionsDiv.innerHTML = '';
+      opciones.forEach((opt) => {
+        const div = document.createElement('div');
+        div.className = 'draggable';
+        div.textContent = opt;
+        div.addEventListener('click', () => seleccionarOpcion(opt));
+        div.addEventListener('touchend', (e) => {
+          e.preventDefault();
+          seleccionarOpcion(opt);
+        });
+        optionsDiv.appendChild(div);
+      });
+    }
+
+    function startIsla10() {
+      if (operacionesMostradas.length >= 10) {
+        operacionesMostradas = [];
+      }
+
+      const tablaAleatoria = Math.floor(Math.random() * 9) + 1;
+      let num;
+      let intentos = 0;
+      const maxIntentos = 20;
+
+      do {
+        num = Math.floor(Math.random() * 10) + 1;
+        intentos++;
+
+        if (intentos >= maxIntentos) {
+          operacionesMostradas = [];
+          num = Math.floor(Math.random() * 10) + 1;
+          break;
+        }
+      } while (operacionesMostradas.includes(`${tablaAleatoria}-${num}`));
+
+      operacionesMostradas.push(`${tablaAleatoria}-${num}`);
+      currentAnswer = tablaAleatoria * num;
+      document.getElementById('question').textContent = `¿Cuánto es ${tablaAleatoria} × ${num}?`;
+
+      const opciones = shuffle([
+        currentAnswer,
+        currentAnswer + 1,
+        currentAnswer - 1,
+        currentAnswer + 2,
+      ]);
+
+      const optionsDiv = document.getElementById('options');
+      optionsDiv.innerHTML = '';
+      opciones.forEach((opt) => {
+        const div = document.createElement('div');
+        div.className = 'draggable';
+        div.textContent = opt;
+        div.addEventListener('click', () => seleccionarOpcion(opt));
+        div.addEventListener('touchend', (e) => {
+          e.preventDefault();
+          seleccionarOpcion(opt);
+        });
+        optionsDiv.appendChild(div);
+      });
+    }
+
+    function seleccionarOpcion(valor) {
+      if (valor === currentAnswer) {
+        resultEl.textContent = '✅ ¡Correcto!';
+        correctStreak++;
+
+        const aciertosNecesarios = currentTable === 10 ? 10 : 5;
+
+        if (operacionesMostradas.length >= 10 || correctStreak >= aciertosNecesarios) {
+          if (currentTable !== 10) {
+            unlockNextIsland();
+          }
+
+          if (currentTable === 10 && localStorage.getItem('isla10Completada') !== 'true') {
+            mostrarMensajeIsla10Completada();
+            localStorage.setItem('isla10Completada', 'true');
+          }
+
+          congratsBox.style.display = 'block';
+          operacionesMostradas = [];
+        }
+      } else {
+        resultEl.textContent = `❌ Incorrecto. La respuesta era ${currentAnswer}`;
+        correctStreak = 0;
+      }
+
+      verificarCofre();
+      setTimeout(() => {
+        resultEl.textContent = '';
+        if (correctStreak < (currentTable === 10 ? 10 : 5) && operacionesMostradas.length < 10) {
+          startGame(currentTable);
+        }
+      }, 1500);
+    }
+
+    function mostrarMensajeIsla10Completada() {
+      const mensajeFinal = document.createElement('div');
+      mensajeFinal.style.position = 'fixed';
+      mensajeFinal.style.top = '50%';
+      mensajeFinal.style.left = '50%';
+      mensajeFinal.style.transform = 'translate(-50%, -50%)';
+      mensajeFinal.style.backgroundColor = '#fff7d1';
+      mensajeFinal.style.padding = '20px';
+      mensajeFinal.style.borderRadius = '12px';
+      mensajeFinal.style.boxShadow = '0 0 15px rgba(0,0,0,0.5)';
+      mensajeFinal.style.zIndex = '2000';
+      mensajeFinal.style.textAlign = 'center';
+      mensajeFinal.innerHTML = `
+        <h2>🏆 ¡Felicidades! 🏆</h2>
+        <p>¡Has completado la Isla Maestra!</p>
+        <p>Ahora eres un verdadero <strong>Experto en Tablas</strong></p>
+        <button onclick="this.parentNode.remove()" style="
+          margin-top: 10px;
+          padding: 10px 20px;
+          background: #4CAF50;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+        ">¡Genial!</button>
+      `;
+      document.body.appendChild(mensajeFinal);
+
+      ganarExp(nivelConfig.expPorDesbloqueoIsla * 3);
+    }
+
+    function unlockNextIsland() {
+      const next = currentTable + 1;
+
+      if (next <= 9 && !unlockedIslas.includes(next)) {
+        unlockedIslas.push(next);
+
+        if (puedeDesbloquearIsla10()) {
+          isla10Desbloqueada = true;
+        }
+
+        saveProgress();
+        renderIslas();
+        ganarExp(nivelConfig.expPorDesbloqueoIsla);
+      }
+    }
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function getRecompensaConBooster(base) {
+      let recompensa = base;
+      const activo = localStorage.getItem('monedasDoblesActivo') === 'true';
+      const expira = parseInt(localStorage.getItem('monedasDoblesExpira') || '0');
+      if (activo && Date.now() < expira) {
+        recompensa *= 2;
+      } else if (activo) {
+        localStorage.setItem('monedasDoblesActivo', 'false');
+        localStorage.removeItem('monedasDoblesExpira');
+      }
+      return recompensa;
+    }
+
+    // Swipe táctil para slider
+    let touchStartX = 0;
+    document.addEventListener('touchstart', (e) => (touchStartX = e.touches[0].clientX));
+    document.addEventListener('touchend', (e) => {
+      const dx = touchStartX - e.changedTouches[0].clientX;
+      if (Math.abs(dx) > 50) {
+        if (dx > 0 && currentSlide < maxTable - 1) currentSlide++;
+        else if (dx < 0 && currentSlide > 0) currentSlide--;
+        updateSlidePosition();
+      }
+    });
+
+    // Teclado: Flechas izquierda/derecha para slider
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' && currentSlide < maxTable - 1) {
+        currentSlide++;
+        updateSlidePosition();
+      } else if (e.key === 'ArrowLeft' && currentSlide > 0) {
+        currentSlide--;
+        updateSlidePosition();
+      }
+    });
+
+    function updateSlidePosition() {
+      slider.style.transform = `translateX(-${currentSlide * 100}vw)`;
+    }
+
+    document.getElementById('btn-inicio').onclick = () => {
+      window.location.href = '../principal/principal.html';
+    };
+
+    document.getElementById('btn-seguir').onclick = () => {
+      congratsBox.style.display = 'none';
+      correctStreak = 0;
+      operacionesMostradas = [];
+      startGame(currentTable);
+    };
+
+    document.getElementById('btn-islas').onclick = () => {
+      gameBox.style.display = 'none';
+      congratsBox.style.display = 'none';
+      updateView();
+    };
+
+    // Inicializar
+    loadProgress();
+    renderIslas();
+
+    if (!localStorage.getItem('userLevel')) {
+      localStorage.setItem('userLevel', '1');
+      localStorage.setItem('userExp', '0');
+    }
+
+    // Inicializar isla10Completada si no existe
+    if (localStorage.getItem('isla10Completada') === null) {
+      localStorage.setItem('isla10Completada', 'false');
+    }
+  </script>
+</body>
+
+</html>
